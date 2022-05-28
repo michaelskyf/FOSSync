@@ -1,6 +1,7 @@
 add_executable(
 	"${PROJECT_NAME}-server"
 	main.c
+	args.c
 	)
 
 find_package(OpenSSL REQUIRED)
