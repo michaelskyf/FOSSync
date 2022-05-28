@@ -1,0 +1,7 @@
+-Iinclude
+-Wall
+-Wextra
+-Wundef
+-Wpedantic
+-Wno-unused-parameter
+-std=c11
