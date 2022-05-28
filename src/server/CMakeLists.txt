@@ -6,3 +6,4 @@ add_executable(
 find_package(OpenSSL REQUIRED)
 
 target_link_libraries("${PROJECT_NAME}-server" ${OPENSSL_LIBRARIES})
+target_link_libraries("${PROJECT_NAME}-server" selog)

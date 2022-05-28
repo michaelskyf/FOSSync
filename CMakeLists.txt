@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.23)
 
 project(fossync)
+set(fossync_verion 0.01-alpha)
 
 IF(NOT DEFINED CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug)
@@ -15,6 +16,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wundef")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
 
+# Definitions
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DFOSSYNC_VERSION=\\\"${fossync_verion}\\\"")
+
 # Debug/Release flags
 set(CMAKE_C_FLAGS_DEBUG "-g")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
@@ -28,4 +32,5 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+add_subdirectory(lib)
 add_subdirectory(src)
