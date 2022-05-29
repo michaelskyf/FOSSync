@@ -17,6 +17,8 @@
 #define FOSSYNC_VERSION "UNKNOWN"
 #endif
 
+#define MAX_MSG_LEN	(long)(100 * 1024) /* 100KB */
+
 struct sockaddr_in srv_address;
 int sockfd;
 
@@ -26,7 +28,7 @@ int bind_udp(void)
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	if(sockfd < 0)
 	{
-		fprintf(stderr, "Failed to create socket: %s\n", strerror(errno));
+		log_error("Failed to create socket: %s\n", strerror(errno));
 		return -1;
 	}
 
@@ -38,68 +40,144 @@ int bind_udp(void)
 
 	if(bind(sockfd, (struct sockaddr *)&srv_address, sizeof(srv_address)) < 0)
 	{
-		fprintf(stderr, "Failed to bind socket: %s\n", strerror(errno));
+		log_error("Failed to bind socket: %s\n", strerror(errno));
 		return -1;
 	}
 
 	return 0;
 }
 
+struct msg_info
+{
+	uint16_t server_id;
+	uint16_t job_id;
+	uint32_t function_id;
+	uint32_t args_size;
+};
+
 /* Remember to align to 4 byte boundries! */
 struct __attribute__((packed)) header
 {
- 	/* Magic: "I Love Anime!UwU" */
-	unsigned char magic[16];
+	unsigned char magic[16]; /* Magic: "I Love Anime!UwU" */
 	uint32_t header_version; /* Current verion: 1 */
-	uint32_t sender_id; /* 0 is user client, anything else is another server */
-	uint32_t function;
+	uint32_t sender_id; /* 0 - user client, higher uin16_t - server id, lower uin16_t - job id (0 if no job) */
+	uint32_t function_id;
 	uint32_t args_size;
 	/* args */
 };
 
 
 /* 0 on valid, non-zero on invalid header */
-int read_header(const unsigned char *data, const size_t data_len)
+int read_header(const unsigned char *data, const size_t data_len, struct msg_info *info)
 {
 	const struct header *header = (const struct header *)data;
 	const unsigned char magic[16] = "I Love Anime!UwU";
 	const uint32_t current_header_version = 1;
 
+	/* Check if message is long enough for header */
+	if(data_len < sizeof(header))
+	{
+		log_debug("Not enough space for header");
+		return -1;
+	}
+
 	/* Check if magic is valid */
 	if(memcmp(magic, header->magic, sizeof(magic)))
 	{
-		fprintf(stderr, "Invalid magic\n");
+		log_debug("Invalid magic\n");
 		return -1;
 	}
 
 	/* Check if header version is supported */
 	if(header->header_version > current_header_version)
 	{
-		fprintf(stderr, "Unsupported header version");
+		log_debug("Unsupported header version");
 		return -1;
 	}
 
+	/* Write information to msg_info struct */
+	info->function_id = header->function_id;
+	info->args_size = header->args_size;
+
+	/* Higher 2 bytes */
+	info->server_id = (header->sender_id & 0xffff0000) >> 16;
+	/* Lower 2 bytes */
+	info->job_id = header->sender_id & 0x0000ffff;
+
+
+	if(info->server_id == 0)
+	{
+		if(info->job_id != 0)
+		{
+			log_debug("Invalid sender_id");
+			return -1;
+		}
+
+		if(0/*TODO*/)
+		{
+			log_debug("Invalid function for user client");
+			return -1;
+		}
+	}
+	else if(0/*TODO*/)
+	{
+		log_debug("Invalid function for server client");
+		return -1;
+	}
+
+	/* Check if message is long enough for arguments */
+	if(data_len < sizeof(header) + header->args_size)
+	{
+		log_debug("Not enough space for arguments");
+		return -1;
+	}
+
+	/* Header is valid */
 	return 0;
 }
 
 void loop(void)
 {
-
 	ssize_t msg_len;
 	socklen_t address_len;
 	struct sockaddr_in client_addr;
-	unsigned char msg_buffer[1024];
+	struct msg_info info;
+	unsigned char *msg_buffer = malloc(MAX_MSG_LEN);
 
 	while(1)
 	{
-		msg_len = recvfrom(sockfd, msg_buffer, sizeof(msg_buffer),
+		/* Check if length is <= MAX_MSG_LEN */
+		msg_len = recvfrom(sockfd, msg_buffer, MAX_MSG_LEN,
+				MSG_WAITALL | MSG_PEEK, (struct sockaddr *)&client_addr, &address_len);
+
+		if(msg_len < 0)
+		{
+			log_error("Error reading socket: %s", strerror(errno));
+			break;
+		}
+
+		if(msg_len > MAX_MSG_LEN)
+		{
+			log_debug("Message exceeded MAX_MSG_LEN (%ld Bytes)", MAX_MSG_LEN);
+		}
+
+		/* Write the message to buffer */
+		msg_len = recvfrom(sockfd, msg_buffer, MAX_MSG_LEN,
 				MSG_WAITALL, (struct sockaddr *)&client_addr, &address_len);
 
-		if(!read_header(msg_buffer, msg_len))
+		if(msg_len < 0)
 		{
-			log_debug("Działa :p");
+			log_error("Error reading socket: %s", strerror(errno));
+			break;
+		}
+
+		if(read_header(msg_buffer, msg_len, &info))
+		{
+			log_debug("Invalid packet detected");
 		}
 	}
+
+	free(msg_buffer);
 }
 
 int main(int argc, char *argv[])
