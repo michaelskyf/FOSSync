@@ -2,6 +2,6 @@
 -Wall
 -Wextra
 -Wundef
--Wpedantic
--Wno-unused-parameter
+-pedantic
 -std=gnu11
+-Wno-gnu-statement-expression

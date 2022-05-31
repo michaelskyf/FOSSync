@@ -1,0 +1,19 @@
+Example:
+
+int strlen(const char *str);
+
+Sends return packet containing integer.
+
+and
+
+Requires following (not to scale):
+
+ ----------------------------
+| HEADER | STR SIZE | STRING |
+ ----------------------------
+
+ STR SIZE is of type uint32_t
+
+ If STR SIZE is 0, argument is NULL, otherwise argument is a pointer to the first character
+
+ Maximum string length is limited by MAX_MSG_LEN (100KB - HEADER - STR SIZE)

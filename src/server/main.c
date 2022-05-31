@@ -1,3 +1,20 @@
+/*
+    This file is part of FOSSync.
+
+    FOSSync is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    FOSSync is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with FOSSync. If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -9,12 +26,13 @@
 #include <netinet/in.h>
 
 #include <selog/selog.h>
-#include <sys/types.h>
 
+#include "types.h"
 #include "args.h"
+#include "worker.h"
 
 #ifndef FOSSYNC_VERSION
-#define FOSSYNC_VERSION "UNKNOWN"
+	#define FOSSYNC_VERSION "UNKNOWN"
 #endif
 
 #define MAX_MSG_LEN	(long)(100 * 1024) /* 100KB */
@@ -47,22 +65,15 @@ int bind_udp(void)
 	return 0;
 }
 
-struct msg_info
-{
-	uint16_t server_id;
-	uint16_t job_id;
-	uint32_t function_id;
-	uint32_t args_size;
-};
-
 /* Remember to align to 4 byte boundries! */
 struct __attribute__((packed)) header
 {
 	unsigned char magic[16]; /* Magic: "I Love Anime!UwU" */
 	uint32_t header_version; /* Current verion: 1 */
-	uint32_t sender_id; /* 0 - user client, higher uin16_t - server id, lower uin16_t - job id (0 if no job) */
+	uint32_t sender_id; /* 0 - user client, high half - server id, lower half - job_id (0 if no job) */
 	uint32_t function_id;
-	uint32_t args_size;
+	uint32_t args_count; /* Number of arguments */
+	uint32_t args_size; /* Total size of all arguments */
 	/* args */
 };
 
@@ -97,7 +108,7 @@ int read_header(const unsigned char *data, const size_t data_len, struct msg_inf
 
 	/* Write information to msg_info struct */
 	info->function_id = header->function_id;
-	info->args_size = header->args_size;
+	info->args_count = header->args_count;
 
 	/* Higher 2 bytes */
 	info->server_id = (header->sender_id & 0xffff0000) >> 16;
@@ -122,13 +133,6 @@ int read_header(const unsigned char *data, const size_t data_len, struct msg_inf
 	else if(0/*TODO*/)
 	{
 		log_debug("Invalid function for server client");
-		return -1;
-	}
-
-	/* Check if message is long enough for arguments */
-	if(data_len < sizeof(header) + header->args_size)
-	{
-		log_debug("Not enough space for arguments");
 		return -1;
 	}
 
@@ -175,6 +179,8 @@ void loop(void)
 		{
 			log_debug("Invalid packet detected");
 		}
+
+		/* Find/Create worker and give him the data */
 	}
 
 	free(msg_buffer);

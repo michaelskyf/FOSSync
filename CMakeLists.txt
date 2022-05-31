@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.23)
 
-project(fossync)
+project(fossync LANGUAGES C)
 set(fossync_verion 0.01-alpha)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -14,6 +14,10 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_FLAGS "-Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wundef")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-gnu-statement-expression")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
 
 # Definitions
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DFOSSYNC_VERSION=\\\"${fossync_verion}\\\"")

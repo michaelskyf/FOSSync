@@ -1,10 +1,16 @@
+set(SERVER_NAME "${PROJECT_NAME}-server")
+
 add_executable(
-	"${PROJECT_NAME}-server"
+	${SERVER_NAME}
 	main.c
 	args.c
+	worker.c
 	)
 
 find_package(OpenSSL REQUIRED)
 
-target_link_libraries("${PROJECT_NAME}-server" ${OPENSSL_LIBRARIES})
-target_link_libraries("${PROJECT_NAME}-server" selog)
+target_link_libraries(
+	${SERVER_NAME}
+	${OPENSSL_LIBRARIES}
+	selog
+	)
