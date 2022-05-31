@@ -5,6 +5,7 @@ add_executable(
 	main.c
 	args.c
 	worker.c
+	functions.c
 	)
 
 find_package(OpenSSL REQUIRED)

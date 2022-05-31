@@ -2,6 +2,7 @@
 -Wall
 -Wextra
 -Wundef
--pedantic
+-Wpedantic
 -std=gnu11
 -Wno-gnu-statement-expression
+-Wno-pointer-arith

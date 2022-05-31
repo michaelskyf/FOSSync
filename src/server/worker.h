@@ -24,6 +24,12 @@
 
 #include "types.h"
 
+/* See functions.h */
+enum worker_functions
+{
+	FUNCTION_HELLOWORLD,
+};
+
 /*
    	 ------------------
 	| args_info | data |
@@ -35,7 +41,7 @@ struct __attribute__((packed)) arg_info
 	uint32_t part_id; /* Current part id */
 	uint32_t total_pats; /* Total number of parts */
 	uint32_t data_size; /* Size of current data */
-	uint64_t total_size; /* Total size of argument (size of all parts) */
+	uint64_t total_size; /* Total size of argument (size of all data parts) */
 };
 
 struct msg_info
@@ -44,6 +50,13 @@ struct msg_info
 	uint16_t job_id;
 	uint32_t function_id;
 	uint32_t args_count;
+};
+
+struct arg_head
+{
+	size_t arg_size;
+	size_t arg_id; /* First argument is 0, second is 1, ... */
+	/* arg */
 };
 
 struct function_info

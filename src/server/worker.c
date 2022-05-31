@@ -28,11 +28,44 @@
 #include "types.h"
 #include "worker.h"
 #include "list.h"
+#include "functions.h"
+
+#define arg(index, type)	(type)get_argument(index, w->fn_info)
 
 struct worker init_worker =
 {
 	.workers = {.prev = &init_worker.workers, .next = &init_worker.workers},
 };
+
+static inline void *get_argument(size_t index, struct function_info *info)
+{
+	struct arg_head *arg = (void*)info + sizeof(info);
+	for(size_t i = 0; i < index; i++)
+	{
+		arg = (void*)arg + arg->arg_size;
+	}
+
+	return (void*)arg + sizeof(arg);
+}
+
+int worker_run_function(struct worker *w)
+{
+	int ret;
+
+	switch(w->fn_info->function_id)
+	{
+		case FUNCTION_HELLOWORLD:
+			ret = helloworld(arg(0, const char *));
+
+			break;
+
+		default:
+			log_error("Function with id %u not found", w->fn_info->function_id);
+			ret = -1;
+	}
+
+	return ret;
+}
 
 static inline void worker_cleanup(struct worker *w)
 {
@@ -62,7 +95,7 @@ void *worker_function(void *args)
 	struct worker *w = (struct worker *)args;
 	int ret = 0;
 
-//	ret = worker_run_function(w);
+	ret = worker_run_function(w);
 
 	w->exit_status = ret;
 
