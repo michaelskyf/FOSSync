@@ -24,12 +24,6 @@
 
 #include "types.h"
 
-/* See functions.h */
-enum worker_functions
-{
-	FUNCTION_HELLOWORLD,
-};
-
 /*
    	 ------------------
 	| args_info | data |
@@ -89,3 +83,5 @@ struct worker
 
 	struct list_head data_queue_head;
 };
+
+int job_create(struct function_info *fn_info);

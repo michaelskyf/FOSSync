@@ -35,7 +35,6 @@
 
 static int bind_udp(int *sockfd, struct sockaddr_in *srv_address)
 {
-	//struct sockaddr_in srv_address;
 	*sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	if(*sockfd < 0)
 	{
@@ -104,7 +103,7 @@ static int read_header(const unsigned char *data, const size_t data_len, struct 
 	return 0;
 }
 
-static void run_server(void)
+int main(int argc, char *argv[])
 {
 	struct sockaddr_in srv_address;
 	int sockfd;
@@ -114,13 +113,20 @@ static void run_server(void)
 	struct msg_info info;
 	unsigned char *msg_buffer = malloc(MAX_MSG_LEN);
 
-	log_info("Binding address %s:%d...", args->address, args->port);
+	selog_setup_default();
+
+	log_info("Starting FOSSync server version %s...", FOSSYNC_VERSION);
+
+	args_parse(argc, argv);
+
 
 	if(bind_udp(&sockfd, &srv_address))
 	{
 		log_error("Failed to bind socket. Exiting");
 		exit(EXIT_FAILURE);
 	}
+
+	log_info("Sever started at address %s:%d", args->address, args->port);
 
 	while(1)
 	{
@@ -136,6 +142,7 @@ static void run_server(void)
 		if(read_header(msg_buffer, msg_len, &info))
 		{
 			log_debug("Invalid packet detected");
+			continue;
 		}
 
 		/* Find/Create worker and give him the data */
@@ -145,20 +152,8 @@ static void run_server(void)
 
 	free(msg_buffer);
 	close(sockfd);
-}
-
-int main(int argc, char *argv[])
-{
-	selog_setup_default();
-
-	log_info("Starting FOSSync server version %s...", FOSSYNC_VERSION);
-
-	args_parse(argc, argv);
-
-	log_info("Sever started");
-
-	run_server();
 
 	log_info("Server stopped");
+
 	return 0;
 }

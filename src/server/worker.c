@@ -90,7 +90,7 @@ static inline void worker_cleanup(struct worker *w)
 	pthread_mutex_unlock(&w->worker_lock);
 }
 
-void *worker_function(void *args)
+static void *worker(void *args)
 {
 	struct worker *w = (struct worker *)args;
 	int ret = 0;
@@ -131,7 +131,7 @@ int job_create(struct function_info *fn_info)
 		return -1;
 	}
 
-	int ret = pthread_create(&w->thread_id, NULL, worker_function, w);
+	int ret = pthread_create(&w->thread_id, NULL, worker, w);
 	if(ret)
 	{
 		/* TODO: print error string */
