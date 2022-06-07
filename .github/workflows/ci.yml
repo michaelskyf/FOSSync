@@ -27,7 +27,7 @@ jobs:
         run: git submodule update --init
 
       - name: Install dependencies
-        run: sudo apt install libssl-dev
+        run: sudo apt install libssl-dev libgtest-dev
 
       - name: Run CMake
         run: cmake . -DCMAKE_C_COMPILER=${{matrix.compiler}}
@@ -52,7 +52,7 @@ jobs:
         run: git submodule update --init
 
       - name: Install dependencies
-        run: brew install openssl
+        run: brew install openssl googletest
 
       - name: Run CMake
         run: cmake . -DCMAKE_C_COMPILER=${{matrix.compiler}} -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl

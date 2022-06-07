@@ -7,9 +7,11 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-include(GoogleTest)
-find_package(GTest REQUIRED)
-enable_testing()
+if(NOT WIN32)
+	include(GoogleTest)
+	find_package(GTest REQUIRED)
+	enable_testing()
+endif()
 
 # Compiler stuff
 set(CMAKE_C_STANDARD 11)
