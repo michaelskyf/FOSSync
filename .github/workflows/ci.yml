@@ -60,27 +60,27 @@ jobs:
       - name: Build the project
         run: make
 
-  windows:
-    name: Build FOSSync for Windows with ${{matrix.compiler}}
-    runs-on: windows-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        compiler: [gcc, clang]
-
-    steps:
-      - name: Checkout respository
-        uses: actions/checkout@v2
-
-      - name: Update git submodules
-        run: git submodule update --init
-
-      - name: Install dependencies
-        run: choco install openssl
-
-      - name: Run CMake
-        run: cmake . -G"Unix Makefiles" -DCMAKE_C_COMPILER=${{matrix.compiler}}
-
-      - name: Build the project
-        run: make
+#  windows:
+#    name: Build FOSSync for Windows with ${{matrix.compiler}}
+#    runs-on: windows-latest
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        compiler: [gcc, clang]
+#
+#    steps:
+#      - name: Checkout respository
+#        uses: actions/checkout@v2
+#
+#      - name: Update git submodules
+#        run: git submodule update --init
+#
+#      - name: Install dependencies
+#        run: choco install openssl
+#
+#      - name: Run CMake
+#        run: cmake . -G"Unix Makefiles" -DCMAKE_C_COMPILER=${{matrix.compiler}}
+#
+#      - name: Build the project
+#        run: make

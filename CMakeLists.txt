@@ -7,11 +7,10 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-if(NOT WIN32)
-	include(GoogleTest)
-	find_package(GTest REQUIRED)
-	enable_testing()
-endif()
+include(GoogleTest)
+include(CTest)
+find_package(GTest REQUIRED)
+enable_testing()
 
 # Compiler stuff
 set(CMAKE_C_STANDARD 11)
@@ -24,6 +23,7 @@ set(COMMON_FLAGS "${COMMON_FLAGS} -Wundef")
 set(COMMON_FLAGS "${COMMON_FLAGS} -pedantic")
 set(COMMON_FLAGS "${COMMON_FLAGS} -Wno-gnu-statement-expression")
 set(COMMON_FLAGS "${COMMON_FLAGS} -Wno-pointer-arith")
+set(COMMON_FLAGS "${COMMON_FLAGS} -Werror")
 
 set(COMMON_FLAGS "${COMMON_FLAGS} -pthread")
 
@@ -34,7 +34,7 @@ set(COMMON_FLAGS "${COMMON_FLAGS} -DFOSSYNC_VERSION=\\\"${fossync_verion}\\\"")
 set(COMMON_FLAGS_DEBUG "-g")
 set(COMMON_FLAGS_DEBUG "${COMMON_FLAGS_DEBUG} -O0")
 
-set(COMMON_FLAGS_RELEASE "-Werror")
+set(COMMON_FLAGS_RELEASE "")
 set(COMMON_FLAGS_RELEASE "${COMMON_FLAGS_RELEASE} -O3")
 
 set(CMAKE_C_FLAGS "${COMMON_FLAGS}")
