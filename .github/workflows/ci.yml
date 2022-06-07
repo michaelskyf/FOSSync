@@ -1,0 +1,86 @@
+name: CI
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+    defaults:
+      run:
+        shell: bash
+
+jobs:
+  linux:
+    name: Build FOSSync for GNU/Linux with ${{matrix.compiler}}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+
+    steps:
+      - name: Checkout respository
+        uses: actions/checkout@v2
+
+      - name: Update git submodules
+        run: git submodule update --init
+
+      - name: Install dependencies
+        run: sudo apt install libssl-dev
+
+      - name: Run CMake
+        run: cmake . -DCMAKE_C_COMPILER=${{matrix.compiler}}
+
+      - name: Build the project
+        run: make
+
+  macos:
+    name: Build FOSSync for MacOS with ${{matrix.compiler}}
+    runs-on: macos-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+
+    steps:
+      - name: Checkout respository
+        uses: actions/checkout@v2
+
+      - name: Update git submodules
+        run: git submodule update --init
+
+      - name: Install dependencies
+        run: brew install openssl
+
+      - name: Run CMake
+        run: cmake . -DCMAKE_C_COMPILER=${{matrix.compiler}} -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+
+      - name: Build the project
+        run: make
+
+  windows:
+    name: Build FOSSync for Windows with ${{matrix.compiler}}
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+
+    steps:
+      - name: Checkout respository
+        uses: actions/checkout@v2
+
+      - name: Update git submodules
+        run: git submodule update --init
+
+      - name: Install dependencies
+        run: choco install openssl
+
+      - name: Run CMake
+        run: cmake . -G"Unix Makefiles" -DCMAKE_C_COMPILER=${{matrix.compiler}}
+
+      - name: Build the project
+        run: make
