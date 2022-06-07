@@ -6,6 +6,7 @@ add_executable(
 	msg.c
 	worker.c
 	main.c
+	args.c
 	)
 
 target_link_libraries(

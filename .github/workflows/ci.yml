@@ -27,13 +27,21 @@ jobs:
         run: git submodule update --init
 
       - name: Install dependencies
-        run: sudo apt install libssl-dev libgtest-dev
+        run: sudo apt install libssl-dev libgtest-dev valgrind
 
       - name: Run CMake
         run: cmake . -DCMAKE_C_COMPILER=${{matrix.compiler}}
 
       - name: Build the project
         run: make
+
+      - name: Run tests
+        id: runTests
+        run: make ExperimentalMemCheck
+
+      - name: Read valgrind logs
+        if: success() || failure()
+        run: cat Testing/Temporary/MemoryChecker.*.log
 
   macos:
     name: Build FOSSync for MacOS with ${{matrix.compiler}}
@@ -59,6 +67,9 @@ jobs:
 
       - name: Build the project
         run: make
+
+      - name: Run tests
+        run: make test
 
 #  windows:
 #    name: Build FOSSync for Windows with ${{matrix.compiler}}

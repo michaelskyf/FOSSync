@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include "args.h"
 #include "msg.h"
 #include "worker.h"
 
@@ -68,7 +69,8 @@ int serve(void)
 	return 0;
 }
 
-int main(int argc, const char *argv[])
+int main(int argc, char *argv[])
 {
+	args_parse(argc, argv);
 	return serve();
 }

@@ -1,38 +1,87 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
 #include <pthread.h>
 
+#include "msg.h"
 #include "worker.h"
+#include "list.h"
+#include "types.h"
 
-void *worker_func(void *args)
+#define WORKER_EXIT(ret) \
+	w->status = 0; \
+	w->exit_code = ret; \
+	close(w->connfd); \
+	pthread_exit(NULL)
+
+static struct list_head workers_head =
 {
-	int connfd = (int)args;
-	char buffer[1024];
+	.prev = &workers_head, .next = &workers_head
+};
+
+struct worker
+{
+	struct list_head workers;
+
+	pthread_t thread_id;
+	int connfd;
+	int exit_code;
+	int status; /* 0 - exited, 1 - working */
+};
+
+static void *worker_func(struct worker *w)
+{
 	ssize_t read_bytes;
+	char buffer[sizeof(struct msg_header) + MAX_DATA_SIZE];
 
-	memset(buffer, 0, sizeof(buffer));
-
-	if((read_bytes = read(connfd, buffer, sizeof(buffer))) == -1)
+	if((read_bytes = read(w->connfd, buffer, sizeof(buffer))) == -1)
 	{
 		fprintf(stderr, "Failed to read socket: %s\n", strerror(errno));
-		pthread_exit(NULL);
+		WORKER_EXIT(-1);
 	}
 
-	while(1)
+	WORKER_EXIT(0);
+}
+
+static void worker_cleanup(void)
+{
+	struct worker *w;
+	struct list_head *curr = workers_head.next, *next = curr->next;
+	while(!list_is_head(curr, &workers_head))
 	{
-		printf("%s\n", buffer);
-		sleep(1);
-	}
+		w = list_entry(curr, typeof(*w), workers);
+		if(!w)
+		{
+			list_del(&w->workers);
 
-	pthread_exit(NULL);
+			free(w);
+		}
+
+		curr = next;
+		next = next->next;
+	}
 }
 
 int worker_create(int connfd)
 {
-	pthread_t thread_id;
-	int ret = pthread_create(&thread_id, NULL, worker_func, (void*)connfd);
+	worker_cleanup();
+
+	struct worker *w = malloc(sizeof(struct worker));
+	if(!w)
+	{
+		fprintf(stderr, "Failed to malloc struct worker: %s", strerror(errno));
+		return -1;
+	}
+
+	list_add(&w->workers, &workers_head);
+
+	/* Init struct worker here */
+	w->connfd = connfd;
+	w->status = 1;
+
+	int ret = pthread_create(&w->thread_id, NULL, (void *(*)(void*))worker_func, w);
 	if(ret)
 	{
 		fprintf(stderr, "Failed to create worker thread: %s", strerror(ret));
@@ -40,4 +89,9 @@ int worker_create(int connfd)
 	}
 
 	return 0;
+}
+
+void worker_waitall(void)
+{
+
 }
