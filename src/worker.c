@@ -45,17 +45,20 @@ static void *worker_func(struct worker *w)
 	WORKER_EXIT(0);
 }
 
-static void worker_cleanup(void)
+void worker_cleanup(int blocking)
 {
 	struct worker *w;
 	struct list_head *curr = workers_head.next, *next = curr->next;
 	while(!list_is_head(curr, &workers_head))
 	{
 		w = list_entry(curr, typeof(*w), workers);
-		if(!w)
+		if(blocking || w->status == 0)
 		{
-			list_del(&w->workers);
+			pthread_join(w->thread_id, NULL);
 
+			printf("Thread %ld exited with return value %d\n", w->thread_id, w->exit_code);
+
+			list_del(&w->workers);
 			free(w);
 		}
 
@@ -66,7 +69,7 @@ static void worker_cleanup(void)
 
 int worker_create(int connfd)
 {
-	worker_cleanup();
+	worker_cleanup(0);
 
 	struct worker *w = malloc(sizeof(struct worker));
 	if(!w)
@@ -84,14 +87,9 @@ int worker_create(int connfd)
 	int ret = pthread_create(&w->thread_id, NULL, (void *(*)(void*))worker_func, w);
 	if(ret)
 	{
-		fprintf(stderr, "Failed to create worker thread: %s", strerror(ret));
+		fprintf(stderr, "Failed to create worker thread: %s\n", strerror(ret));
 		return -1;
 	}
 
 	return 0;
-}
-
-void worker_waitall(void)
-{
-
 }
