@@ -56,8 +56,6 @@ void worker_cleanup(int blocking)
 		{
 			pthread_join(w->thread_id, NULL);
 
-			printf("Thread %ld exited with return value %d\n", w->thread_id, w->exit_code);
-
 			list_del(&w->workers);
 			free(w);
 		}

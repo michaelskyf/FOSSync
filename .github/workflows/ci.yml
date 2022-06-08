@@ -11,13 +11,15 @@ on:
 
 jobs:
   linux:
-    name: Build FOSSync for GNU/Linux with ${{matrix.compiler}}
+    name: Build FOSSync for GNU/Linux with ${{matrix.compiler.name}}
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        compiler: [gcc, clang]
+        compiler:
+          - {name: GCC, cc: gcc, cxx: g++}
+          - {name: Clang, cc: clang, cxx: clang++}
 
     steps:
       - name: Checkout respository
@@ -30,7 +32,7 @@ jobs:
         run: sudo apt install libssl-dev libgtest-dev valgrind
 
       - name: Run CMake
-        run: cmake . -DCMAKE_C_COMPILER=${{matrix.compiler}}
+        run: cmake . -DCMAKE_C_COMPILER=${{matrix.compiler.cc}} -DCMAKE_CXX_COMPILER=${{matrix.compiler.cxx}}
 
       - name: Build the project
         run: make
@@ -44,13 +46,15 @@ jobs:
         run: cat Testing/Temporary/MemoryChecker.*.log
 
   macos:
-    name: Build FOSSync for MacOS with ${{matrix.compiler}}
+    name: Build FOSSync for MacOS with ${{matrix.compiler.name}}
     runs-on: macos-latest
 
     strategy:
       fail-fast: false
       matrix:
-        compiler: [gcc, clang]
+        compiler:
+          - {name: GCC, cc: gcc, cxx: g++}
+          - {name: Clang, cc: clang, cxx: clang++}
 
     steps:
       - name: Checkout respository
@@ -63,7 +67,7 @@ jobs:
         run: brew install openssl googletest
 
       - name: Run CMake
-        run: cmake . -DCMAKE_C_COMPILER=${{matrix.compiler}} -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+        run: cmake . -DCMAKE_C_COMPILER=${{matrix.compiler.cc}} -DCMAKE_CXX_COMPILER=${{matrix.compiler.cxx}} -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
 
       - name: Build the project
         run: make
