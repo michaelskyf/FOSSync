@@ -1,5 +1,6 @@
 ![CI](https://github.com/michaelskyf/FOSSync/actions/workflows/ci.yml/badge.svg)
 
+All new progress is happening [here](https://github.com/michaelskyf/ftp) (FOSSync will be based on ftp protocol)<br>
 🛑 At this stage nothing works, the project is in its infancy 🛑<br>
 ⚠️ Work in Progress ⚠️<br>
 ⚠️ At this stage all packets are unencrypted ⚠️
